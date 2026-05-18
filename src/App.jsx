@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 
 // ── PIN — change to your preferred PIN ───────────────────────────────────────
-const APP_PIN = "2201";
+const APP_PIN = "1234";
 
 // ── PIN Lock ──────────────────────────────────────────────────────────────────
 function PinLock({ onUnlock }) {
@@ -412,8 +412,11 @@ function TaskList({ tasks, categories, onToggle, onEdit, onDelete }) {
 }
 
 // ── Calendar View ─────────────────────────────────────────────────────────────
+const MON_DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 function CalendarView({ tasks, categories, month, year, setMonth, setYear }) {
-  const firstDay    = new Date(year,month,1).getDay();
+  // getDay() returns 0=Sun..6=Sat; shift so Monday=0
+  const rawDay      = new Date(year,month,1).getDay();
+  const firstDay    = (rawDay + 6) % 7;
   const daysInMonth = new Date(year,month+1,0).getDate();
   const cells       = Array(firstDay).fill(null).concat(Array.from({length:daysInMonth},(_,i)=>i+1));
 
@@ -435,7 +438,7 @@ function CalendarView({ tasks, categories, month, year, setMonth, setYear }) {
         <button onClick={next} style={{ background:"#161923", border:"1px solid #2D3348", color:"#E2E8F0", borderRadius:10, padding:"8px 16px", fontSize:16, cursor:"pointer" }}>›</button>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:3 }}>
-        {DAYS.map(d=><div key={d} style={{ textAlign:"center", fontSize:10, fontWeight:600, color:"#475569", padding:"4px 0", textTransform:"uppercase" }}>{d[0]}</div>)}
+        {MON_DAYS.map(d=><div key={d} style={{ textAlign:"center", fontSize:10, fontWeight:600, color:"#475569", padding:"4px 0", textTransform:"uppercase" }}>{d[0]}</div>)}
         {cells.map((day,i)=>{
           if(!day) return <div key={i}/>;
           const ds=`${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
