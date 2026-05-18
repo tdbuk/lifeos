@@ -1,5 +1,71 @@
 import { useState, useEffect, useMemo } from "react";
 
+// ── PIN Configuration — change this to your preferred PIN ─────────────────────
+const APP_PIN = "2201";
+
+// ── PIN Lock Screen ───────────────────────────────────────────────────────────
+function PinLock({ onUnlock }) {
+  const [entered, setEntered] = useState("");
+  const [error, setError] = useState(false);
+  const [shake, setShake] = useState(false);
+
+  const handleKey = (k) => {
+    if (entered.length >= APP_PIN.length) return;
+    const next = entered + k;
+    setEntered(next);
+    setError(false);
+    if (next.length === APP_PIN.length) {
+      if (next === APP_PIN) {
+        setTimeout(() => onUnlock(), 200);
+      } else {
+        setShake(true);
+        setError(true);
+        setTimeout(() => { setEntered(""); setShake(false); }, 600);
+      }
+    }
+  };
+
+  const handleDel = () => { setEntered(e => e.slice(0, -1)); setError(false); };
+
+  const keys = ["1","2","3","4","5","6","7","8","9","","0","⌫"];
+
+  return (
+    <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: "#0F1117", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        .pin-btn { background: #161923; border: 1px solid #2D3348; color: #E2E8F0; border-radius: 50%; width: 72px; height: 72px; font-size: 22px; font-weight: 500; cursor: pointer; transition: background .15s; display: flex; align-items: center; justify-content: center; }
+        .pin-btn:hover { background: #1E2231; }
+        .pin-btn:active { background: #6EE7B722; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+        .shake { animation: shake 0.5s ease; }
+      `}</style>
+      <div style={{ marginBottom: 12 }}>
+        <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 28, fontWeight: 500, color: "#6EE7B7" }}>LIFE<span style={{ color: "#E2E8F0" }}>OS</span></span>
+      </div>
+      <div style={{ fontSize: 14, color: "#475569", marginBottom: 36 }}>Enter your PIN to continue</div>
+
+      {/* Dots */}
+      <div className={shake ? "shake" : ""} style={{ display: "flex", gap: 16, marginBottom: 40 }}>
+        {Array.from({ length: APP_PIN.length }).map((_, i) => (
+          <div key={i} style={{ width: 16, height: 16, borderRadius: "50%", background: error ? "#EF4444" : i < entered.length ? "#6EE7B7" : "#2D3348", transition: "background .15s" }} />
+        ))}
+      </div>
+
+      {/* Keypad */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 72px)", gap: 14 }}>
+        {keys.map((k, i) => (
+          k === "" ? <div key={i} /> :
+          k === "⌫" ? <button key={i} className="pin-btn" onClick={handleDel} style={{ fontSize: 18, color: "#94A3B8" }}>⌫</button> :
+          <button key={i} className="pin-btn" onClick={() => handleKey(k)}>{k}</button>
+        ))}
+      </div>
+
+      {error && <div style={{ marginTop: 24, fontSize: 13, color: "#EF4444" }}>Incorrect PIN — try again</div>}
+    </div>
+  );
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 const DEFAULT_CATEGORIES = {
   personal: {
@@ -49,6 +115,7 @@ const SAMPLE_TASKS = [
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function LifeDashboard() {
+  const [unlocked, setUnlocked] = useState(false);
   const [categories, setCategories] = useState(() => {
     try { const s = localStorage.getItem("ltd_cats"); return s ? JSON.parse(s) : DEFAULT_CATEGORIES; } catch { return DEFAULT_CATEGORIES; }
   });
@@ -103,6 +170,10 @@ export default function LifeDashboard() {
   };
 
   const subs = catFilter !== "all" ? categories[catFilter]?.subcategories || [] : [];
+
+  const handleUnlock = () => setUnlocked(true);
+
+  if (!unlocked) return <PinLock onUnlock={handleUnlock} />;
 
   return (
     <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: "#0F1117", minHeight: "100vh", color: "#E2E8F0" }}>
