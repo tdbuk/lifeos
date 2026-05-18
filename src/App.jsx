@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 
 // ── PIN — change to your preferred PIN ───────────────────────────────────────
-const APP_PIN = "1234";
+const APP_PIN = "2201";
 
 // ── PIN Lock ──────────────────────────────────────────────────────────────────
 function PinLock({ onUnlock }) {
